@@ -131,11 +131,12 @@ class Agent(nn.Module):
             nn.Flatten(),
             layer_init(nn.Linear(64 * 7 * 7, 512)),
             nn.ReLU(),
+            CfC(512, 64, batch_first=True, return_sequences=False),
         )
-        #self.actor = layer_init(nn.Linear(512, envs.single_action_space.n), std=0.01)
-        self.actor = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=envs.single_action_space.n)
-        #self.critic = layer_init(nn.Linear(512, 1), std=1)
-        self.critic = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=1)
+        self.actor = layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01)
+        #self.actor = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=envs.single_action_space.n)
+        self.critic = layer_init(nn.Linear(64, 1), std=1)
+        #self.critic = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=1)
 
     def get_value(self, x):
         return self.critic(self.network(x / 255.0))
