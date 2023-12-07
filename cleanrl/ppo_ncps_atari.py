@@ -132,7 +132,7 @@ class Agent(nn.Module):
             layer_init(nn.Linear(64 * 7 * 7, 512)),
             nn.ReLU()
         )
-        self.rnn = CfC(512, 64, batch_first=True)
+        self.rnn = CfC(512, 64)
 
         self.actor = layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01)
         #self.actor = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=envs.single_action_space.n)
