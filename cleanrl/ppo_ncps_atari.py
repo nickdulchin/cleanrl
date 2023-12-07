@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import gymnasium as gym
 import numpy as np
-from ncps.torch import CfC
+from ncps.torch import CfCCell
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -131,7 +131,8 @@ class Agent(nn.Module):
             nn.Flatten(),
             layer_init(nn.Linear(64 * 7 * 7, 512)),
             nn.ReLU(),
-            CfC(512, 64, batch_first=True, return_sequences=False),
+            #CfC(512, 64, batch_first=True, return_sequences=False),
+            CfCCell(512, 64),
         )
         self.actor = layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01)
         #self.actor = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=envs.single_action_space.n)
