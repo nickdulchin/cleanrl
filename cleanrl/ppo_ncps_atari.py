@@ -148,7 +148,7 @@ class Agent(nn.Module):
         x = self.network(x / 255.0)
         x = x.unsqueeze(0)  # Add sequence dimension
         x, hidden_state = self.forward_rnn(x, hidden_state)
-        return self.critic(x.squeeze(0)), hidden_state
+        return self.critic(x.squeeze(0))
 
     def get_action_and_value(self, x, hidden_state=None, action=None):
         x = self.network(x / 255.0)
@@ -159,7 +159,7 @@ class Agent(nn.Module):
         probs = Categorical(logits=logits)
         if action is None:
             action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(x), hidden_state
+        return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
     # def get_value(self, x):
     #     hidden = self.rnn(self.network(x / 255.0))
