@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import gymnasium as gym
 import numpy as np
-from ncps.torch import CfCCell
+from ncps.torch import CfC
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -130,25 +130,48 @@ class Agent(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
             layer_init(nn.Linear(64 * 7 * 7, 512)),
-            nn.ReLU(),
-            #CfC(512, 64, batch_first=True, return_sequences=False),
-            CfCCell(512, 64),
+            nn.ReLU()
         )
+        self.rnn = CfC(512, 64, batch_first=True)
+
         self.actor = layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01)
         #self.actor = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=envs.single_action_space.n)
         self.critic = layer_init(nn.Linear(64, 1), std=1)
         #self.critic = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=1)
 
-    def get_value(self, x):
-        return self.critic(self.network(x / 255.0))
+    def forward_rnn(self, x, hidden_state=None):
+        # Forward pass through RNN
+        x, hidden_state = self.rnn(x, hidden_state)
+        return x, hidden_state
 
-    def get_action_and_value(self, x, action=None):
-        hidden = self.network(x / 255.0)
-        logits = self.actor(hidden)
+    def get_value(self, x, hidden_state=None):
+        x = self.network(x / 255.0)
+        x = x.unsqueeze(0)  # Add sequence dimension
+        x, hidden_state = self.forward_rnn(x, hidden_state)
+        return self.critic(x.squeeze(0)), hidden_state
+
+    def get_action_and_value(self, x, hidden_state=None, action=None):
+        x = self.network(x / 255.0)
+        x = x.unsqueeze(0)  # Add sequence dimension
+        x, hidden_state = self.forward_rnn(x, hidden_state)
+        x = x.squeeze(0)
+        logits = self.actor(x)
         probs = Categorical(logits=logits)
         if action is None:
             action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+        return action, probs.log_prob(action), probs.entropy(), self.critic(x), hidden_state
+
+    # def get_value(self, x):
+    #     hidden = self.rnn(self.network(x / 255.0))
+    #     return self.critic(hidden)
+
+    # def get_action_and_value(self, x, action=None):
+    #     hidden = self.rnn(self.network(x / 255.0)
+    #     logits = self.actor(hidden)
+    #     probs = Categorical(logits=logits)
+    #     if action is None:
+    #         action = probs.sample()
+    #     return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
 
 
 if __name__ == "__main__":
