@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import gymnasium as gym
 import numpy as np
-from ncps.torch import CfCCell
+from ncps.torch import CfC
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -133,9 +133,9 @@ class Agent(nn.Module):
             nn.ReLU(),
         )
         #self.actor = layer_init(nn.Linear(512, envs.single_action_space.n), std=0.01)
-        self.actor = CfCCell(512, 64, proj_size=envs.single_action_space.n)
+        self.actor = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=envs.single_action_space.n)
         #self.critic = layer_init(nn.Linear(512, 1), std=1)
-        self.critic = CfCCell(512, 64, proj_size=1)
+        self.critic = CfC(512, 64, batch_first=True, return_sequences=False, proj_size=1)
 
     def get_value(self, x):
         return self.critic(self.network(x / 255.0))
