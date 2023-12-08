@@ -132,7 +132,8 @@ class Agent(nn.Module):
             layer_init(nn.Linear(64 * 7 * 7, 512)),
             nn.ReLU(),
         )
-        self.lstm = CfC(512, 128, mixed_memory=True)
+        # mixed memory so it includes memory-cell, also code expects batch first
+        self.lstm = CfC(512, 128, mixed_memory=True, batch_first=False)
         for name, param in self.lstm.named_parameters():
             if "bias" in name:
                 nn.init.constant_(param, 0)
@@ -153,10 +154,13 @@ class Agent(nn.Module):
             h, lstm_state = self.lstm(
                 h.unsqueeze(0),
                 (
-                    (1.0 - d).view(1, -1, 1) * lstm_state[0],
-                    (1.0 - d).view(1, -1, 1) * lstm_state[1],
+                    # make 2d so it works with ncps
+                    (1.0 - d).view(-1, 1) * lstm_state[0].squeeze(0),
+                    (1.0 - d).view(-1, 1) * lstm_state[1].squeeze(0),
                 ),
             )
+            # make 3d again
+            lstm_state = (lstm_state[0].unsqueeze(0), lstm_state[1].unsqueeze(0))
             new_hidden += [h]
         new_hidden = torch.flatten(torch.cat(new_hidden), 0, 1)
         return new_hidden, lstm_state
