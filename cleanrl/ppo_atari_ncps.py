@@ -231,8 +231,8 @@ if __name__ == "__main__":
     next_done = torch.zeros(args.num_envs).to(device)
     next_lstm_state = (
         # return 1 if attribute doesn't exist or backbone layers
-        torch.zeros(getattr(agent.lstm, 'backbone_layers', 1), args.num_envs, agent.lstm.units).to(device),
-        torch.zeros(getattr(agent.lstm, 'backbone_layers', 1), args.num_envs, agent.lstm.units).to(device),
+        torch.zeros(getattr(agent.lstm, 'backbone_layers', 1), args.num_envs, agent.lstm.state_size).to(device),
+        torch.zeros(getattr(agent.lstm, 'backbone_layers', 1), args.num_envs, agent.lstm.state_size).to(device),
     )  # hidden and cell states (see https://youtu.be/8HyCNIVRbSU)
 
     for iteration in range(1, args.num_iterations + 1):
