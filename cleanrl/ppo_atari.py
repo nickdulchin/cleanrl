@@ -76,7 +76,7 @@ class Args:
     """the maximum norm for the gradient clipping"""
     target_kl: float = None
     """the target KL divergence threshold"""
-    frame_stack: int = 4
+    frame_stack: int = 1
     """the number of frames to stack"""
 
     # to be filled in runtime
